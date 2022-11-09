@@ -1,15 +1,17 @@
+'use strict'
+
 require('dotenv').config()
 
-const express = require('express')
-const morgan = require('morgan')
-const app = express()
-
-const database = require('./src/database')
-database.connect()
+import express from 'express'
+import morgan from 'morgan'
+import initializeDBConnection from './src/database'
 
 const DEFAULT_SERVER_PORT = 4000
 const SERVER_PORT = process.env.SERVER_PORT ? Number(process.env.SERVER_PORT) : DEFAULT_SERVER_PORT
 
+initializeDBConnection()
+
+const app = express()
 app.use(morgan('combined'))
 
 app.get('/', (req, res) => {

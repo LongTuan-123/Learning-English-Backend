@@ -1,20 +1,21 @@
 require('dotenv').config()
 
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
-async function connect() {
-  try {
-    await mongoose.connect(
-      `mongodb://${process.env.MONGODB_HOST}:${process.env.MONGODB_PORT}/${process.env.MONGODB_DATABASE}`,
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      },
-    )
-    console.log('Connection success')
-  } catch (err) {
-    console.log('Connection fail')
+const connection = `mongodb://${process.env.MONGODB_HOST}:${process.env.MONGODB_PORT}/${process.env.MONGODB_DATABASE}`
+const initializeDBConnection = () => {
+  const connectOptions = {
+    retryWrites: false,
+    directConnection: true,
   }
+
+  mongoose.connect(connection, connectOptions)
+
+  mongoose.connection.once('open', () => {
+    console.log(`Connected to ${process.env.MONGODB_DATABASE} database`)
+  })
+
+  mongoose.connection.on('error', console.log)
 }
 
-module.exports = { connect }
+export default initializeDBConnection

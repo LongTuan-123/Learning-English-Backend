@@ -1,52 +1,85 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import bcrypt from 'bcryptjs'
-import { StatusCodes } from 'http-status-codes'
+import jwt from 'jsonwebtoken'
+import { StatusCodes, getReasonPhrase } from 'http-status-codes'
 import { UserModel } from '../models/User'
-import { getReasonPhrase } from 'http-status-codes/build/cjs/utils-functions'
-import { Types } from 'mongoose'
+import { ROLE } from '../types/role'
 
 dayjs.extend(utc)
 
+const ONE_DAY_IN_SECOND = 86400
+
 // User Register
-export const register = async (ctx: {
-  request: { body: { email: string; password: string } }
-  status: StatusCodes
-  body: { success: boolean; message?: string; manager?: { id: Types.ObjectId; email: string } }
-}) => {
+export const register = async (req, res) => {
   try {
-    const { email, password } = ctx.request.body
+    const { email, password } = req.body
     if (!email || !password) {
-      ctx.status = StatusCodes.NOT_FOUND
-      ctx.body = {
-        success: false,
-        message: 'Email & password are required',
-      }
+      res.status(StatusCodes.NOT_FOUND).json('Email & password are required')
+
       return
     }
 
     const existEmail = await UserModel.findOne({ Email: email })
     if (existEmail) {
-      ctx.status = StatusCodes.BAD_REQUEST
-      ctx.body = { success: false, message: 'Manager email has already existed' }
+      res.status(StatusCodes.BAD_REQUEST).json('Manager email has already existed')
+
+      return
     }
 
-    const salt = await bcrypt.genSalt(Number(process.env.AUTH_SALT_VALUE))
-    const hashedPassword = bcrypt.hashSync(password, salt)
+    const hashedPassword = await bcrypt.hash(password, Number(process.env.AUTH_SALT_VALUE))
 
     const currentTimestamp = dayjs.utc().unix()
-    const manager = await UserModel.create({
+    const userInfo = await UserModel.create({
       Email: email.toLowerCase(),
       HashedPassword: hashedPassword,
+      Role: ROLE.MEMBER,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
     })
 
-    ctx.status = StatusCodes.OK
-    ctx.body = { success: true, manager: { id: manager._id, email } }
+    res.status(StatusCodes.OK).json({ success: true, userInfo: { id: userInfo._id, email } })
   } catch (error) {
     console.log('[register] Error: ', error)
-    ctx.status = StatusCodes.INTERNAL_SERVER_ERROR
-    ctx.body = { success: false, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) }
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR))
+  }
+}
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body
+    if (!email || !password) {
+      res.status(StatusCodes.NOT_FOUND).json('Email & password are required')
+
+      return
+    }
+
+    const userInfo = await UserModel.findOne({ Email: email })
+    if (!userInfo) {
+      res.status(StatusCodes.NOT_FOUND).json('Invalid login attempt')
+
+      return
+    }
+
+    const isValidManagerPassword = bcrypt.compareSync(password, userInfo.HashedPassword)
+
+    if (!isValidManagerPassword) {
+      res.status(StatusCodes.BAD_REQUEST).json('Invalid login attempt')
+
+      return
+    }
+
+    const jwtToken = jwt.sign(
+      { manager_id: userInfo._id, email, role: userInfo.Role },
+      process.env.JWT_SECRET_KEY ?? '',
+      {
+        expiresIn: Number(process.env.JWT_EXPIRATION_DURATION ?? ONE_DAY_IN_SECOND),
+      },
+    )
+
+    res.status(StatusCodes.OK).json({ success: true, userInfo: { id: userInfo._id, email, token: jwtToken } })
+  } catch (error) {
+    console.log('[login] Error: ', error)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR))
   }
 }

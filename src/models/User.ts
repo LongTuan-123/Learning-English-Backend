@@ -31,10 +31,6 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    IsActivated: {
-      type: Boolean,
-      default: false,
-    },
     Role: {
       type: Number,
       default: 0,

@@ -3,7 +3,9 @@ import * as authenticationController from '../controllers/authentication.control
 
 const router = express.Router()
 
-router.post('/api/v1/register', authenticationController.register)
-router.post('/api/v1/login', authenticationController.login)
+router.post('/api/auth/register', authenticationController.register)
+router.post('/api/auth/login', authenticationController.login)
+router.post('/api/auth/verify', authenticationController.verify)
+router.post('/api/auth/resend', authenticationController.resend)
 
 export default router

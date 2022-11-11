@@ -5,6 +5,9 @@ export type UserType = {
   HashedPassword: string
   CreatedAt: number
   UpdatedAt: number
+  DeleteAt: number
+  OtpCode: number
+  IsActivated: boolean
   Role: number
 }
 
@@ -30,6 +33,14 @@ const UserSchema = new mongoose.Schema(
     DeletedAt: {
       type: Number,
       default: 0,
+    },
+    OtpCode: {
+      type: Number,
+      default: 0,
+    },
+    IsActivated: {
+      type: Boolean,
+      default: false,
     },
     Role: {
       type: Number,

@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import { StatusCodes, getReasonPhrase } from 'http-status-codes'
 import { UserModel } from '../models/User'
 import { ROLE } from '../types/role'
+import { generateCode, sendOtpMail } from '../utils/mail'
 
 dayjs.extend(utc)
 
@@ -27,6 +28,14 @@ export const register = async (req, res) => {
       return
     }
 
+    const otpCode = generateCode()
+
+    if (!sendOtpMail(email, otpCode)) {
+      res.status(StatusCodes.BAD_REQUEST).json('You send email failed')
+
+      return
+    }
+
     const hashedPassword = await bcrypt.hash(password, Number(process.env.AUTH_SALT_VALUE))
 
     const currentTimestamp = dayjs.utc().unix()
@@ -34,17 +43,22 @@ export const register = async (req, res) => {
       Email: email.toLowerCase(),
       HashedPassword: hashedPassword,
       Role: ROLE.MEMBER,
+      IsActivated: false,
+      OtpCode: otpCode,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
     })
 
-    res.status(StatusCodes.OK).json({ success: true, userInfo: { id: userInfo._id, email } })
+    res
+      .status(StatusCodes.OK)
+      .json({ success: true, userInfo: { id: userInfo._id, email }, message: 'Please check your email to get OTP' })
   } catch (error) {
     console.log('[register] Error: ', error)
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR))
   }
 }
 
+// User Login
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body
@@ -56,7 +70,13 @@ export const login = async (req, res) => {
 
     const userInfo = await UserModel.findOne({ Email: email })
     if (!userInfo) {
-      res.status(StatusCodes.NOT_FOUND).json('Invalid login attempt')
+      res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Invalid login attempt' })
+
+      return
+    }
+
+    if (!userInfo.IsActivated) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Your account is not actived' })
 
       return
     }
@@ -80,6 +100,61 @@ export const login = async (req, res) => {
     res.status(StatusCodes.OK).json({ success: true, userInfo: { id: userInfo._id, email, token: jwtToken } })
   } catch (error) {
     console.log('[login] Error: ', error)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR))
+  }
+}
+
+// User verify
+export const verify = async (req, res) => {
+  try {
+    const { email, otpCode } = req.body
+
+    const checkOtp = await UserModel.findOne({ Email: email, OtpCode: otpCode })
+
+    if (!checkOtp) {
+      res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Verify code fail' })
+
+      return
+    }
+    const updateUser = await UserModel.findOneAndUpdate({ Email: email }, { IsActivated: true })
+
+    if (!updateUser) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Verify code fail' })
+
+      return
+    }
+
+    res.status(StatusCodes.OK).json({ success: true, message: 'Register successfully' })
+  } catch (error) {
+    console.log('[verify] Error: ', error)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR))
+  }
+}
+
+// User resend code
+export const resend = async (req, res) => {
+  try {
+    const { email } = req.body
+
+    const otpCode = generateCode()
+
+    if (!sendOtpMail(email, otpCode)) {
+      res.status(StatusCodes.BAD_REQUEST).json('You send email failed')
+
+      return
+    }
+
+    const updateUser = await UserModel.findOneAndUpdate({ Email: email }, { OtpCode: otpCode })
+
+    if (!updateUser) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Resend fail' })
+
+      return
+    }
+
+    res.status(StatusCodes.OK).json({ success: true, message: 'You have to resend otp code.' })
+  } catch (error) {
+    console.log('[resend] Error: ', error)
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR))
   }
 }

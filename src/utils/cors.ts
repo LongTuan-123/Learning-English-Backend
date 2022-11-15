@@ -1,7 +1,8 @@
-export const cors = (req: any, res: { header: (arg0: string, arg1: string) => void }, next: () => void) => {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-  res.header('Access-Control-Allow-Headers', 'Content-Type')
+export const cors = (req: any, res, next: () => void) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.setHeader('Access-Control-Allow-Headers', 'Origin,X-Requested-With, Content-Type, Authorization')
+  res.setHeader('Access-Control-Allow-Credentials', true)
 
   next()
 }

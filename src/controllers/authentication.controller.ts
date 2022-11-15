@@ -16,14 +16,16 @@ export const register = async (req, res) => {
   try {
     const { email, password } = req.body
     if (!email || !password) {
-      res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Email & password are required' })
+      res.status(StatusCodes.NOT_FOUND).json({ success: false, data: null, message: 'Email & password are required' })
 
       return
     }
 
     const existEmail = await UserModel.findOne({ Email: email })
     if (existEmail) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Manager email has already existed' })
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ success: false, data: null, message: 'Manager email has already existed' })
 
       return
     }
@@ -31,7 +33,7 @@ export const register = async (req, res) => {
     const otpCode = generateCode()
 
     if (!sendOtpMail(email, otpCode)) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'You send email failed' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You send email failed' })
 
       return
     }
@@ -51,12 +53,12 @@ export const register = async (req, res) => {
 
     res
       .status(StatusCodes.OK)
-      .json({ success: true, userInfo: { id: userInfo._id, email }, message: 'Please check your email to get OTP' })
+      .json({ success: true, data: { id: userInfo._id, email }, message: 'Please check your email to get OTP' })
   } catch (error) {
     console.log('[register] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ success: false, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
   }
 }
 
@@ -64,21 +66,22 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body
+    console.log(req.body)
     if (!email || !password) {
-      res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Email & password are required' })
+      res.status(StatusCodes.NOT_FOUND).json({ success: false, data: null, message: 'Email & password are required' })
 
       return
     }
 
     const userInfo = await UserModel.findOne({ Email: email })
     if (!userInfo) {
-      res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Invalid login attempt' })
+      res.status(StatusCodes.NOT_FOUND).json({ success: false, data: null, message: 'Invalid login attempt' })
 
       return
     }
 
     if (!userInfo.IsActivated) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Your account is not activated' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Your account is not activated' })
 
       return
     }
@@ -86,7 +89,7 @@ export const login = async (req, res) => {
     const isValidManagerPassword = bcrypt.compareSync(password, userInfo.HashedPassword)
 
     if (!isValidManagerPassword) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Invalid login attempt' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid login attempt' })
 
       return
     }
@@ -99,12 +102,12 @@ export const login = async (req, res) => {
       },
     )
 
-    res.status(StatusCodes.OK).json({ success: true, userInfo: { id: userInfo._id, email, token: jwtToken } })
+    res.status(StatusCodes.OK).json({ success: true, data: { id: userInfo._id, email, token: jwtToken } })
   } catch (error) {
     console.log('[login] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ success: false, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
   }
 }
 
@@ -116,24 +119,24 @@ export const verify = async (req, res) => {
     const checkOtp = await UserModel.findOne({ Email: email, OtpCode: otpCode })
 
     if (!checkOtp) {
-      res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Verify code fail' })
+      res.status(StatusCodes.NOT_FOUND).json({ success: false, data: null, message: 'Verify code fail' })
 
       return
     }
     const updateUser = await UserModel.findOneAndUpdate({ Email: email }, { IsActivated: true })
 
     if (!updateUser) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Verify code fail' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Verify code fail' })
 
       return
     }
 
-    res.status(StatusCodes.OK).json({ success: true, message: 'Register successfully' })
+    res.status(StatusCodes.OK).json({ success: true, data: null, message: 'Register successfully' })
   } catch (error) {
     console.log('[verify] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ success: false, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
   }
 }
 
@@ -145,7 +148,7 @@ export const resend = async (req, res) => {
     const otpCode = generateCode()
 
     if (!sendOtpMail(email, otpCode)) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'You send email failed' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You send email failed' })
 
       return
     }
@@ -153,16 +156,16 @@ export const resend = async (req, res) => {
     const updateUser = await UserModel.findOneAndUpdate({ Email: email }, { OtpCode: otpCode })
 
     if (!updateUser) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Resend fail' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Resend fail' })
 
       return
     }
 
-    res.status(StatusCodes.OK).json({ success: true, message: 'You have to resend otp code.' })
+    res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You have to resend otp code.' })
   } catch (error) {
     console.log('[resend] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ success: false, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
   }
 }

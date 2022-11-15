@@ -5,6 +5,8 @@ require('dotenv').config()
 import express from 'express'
 import morgan from 'morgan'
 import userRoutes from './routes/authentication.route'
+import postRoutes from './routes/post.route'
+import publicRoutes from './routes/public.route'
 import initializeDBConnection from './database'
 import bodyParser from 'body-parser'
 import { cors } from './utils/cors'
@@ -29,6 +31,7 @@ app.use(bodyParser.json())
 // Routes
 // Write api public which don't need jwt in here
 app.use(userRoutes)
+app.use(publicRoutes)
 
 // Verify access token
 app.use((req, res, next) => {
@@ -61,6 +64,7 @@ app.use((req, res, next) => {
 })
 
 // Write api private which need jwt in here
+app.use(postRoutes)
 
 app.listen(SERVER_PORT)
 console.log(`Example app listening on port ${SERVER_PORT}`)

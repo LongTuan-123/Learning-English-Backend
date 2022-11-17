@@ -13,6 +13,7 @@ export const index = async (req, res) => {
 
   const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
   const limit = Number(queryString.limit || DEFAULT_ITEM_PER_PAGE)
+  const keyword = queryString.keyword || ''
   let startDate = queryString.startDate
   let endDate = queryString.endDate
 
@@ -40,6 +41,7 @@ export const index = async (req, res) => {
     const posts = await PostModel.find(
       {
         CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
+        Title: { $regex: keyword },
       },
       null,
       { skip: startPage * limit, limit },

@@ -51,9 +51,11 @@ export const register = async (req, res) => {
       UpdatedAt: currentTimestamp,
     })
 
-    res
-      .status(StatusCodes.OK)
-      .json({ success: true, data: { id: userInfo._id, email }, message: 'Please check your email to get OTP' })
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: { id: userInfo._id, email, role: userInfo.Role },
+      message: 'Please check your email to get OTP',
+    })
   } catch (error) {
     console.log('[register] Error: ', error)
     res
@@ -162,6 +164,21 @@ export const resend = async (req, res) => {
     }
 
     res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You have to resend otp code.' })
+  } catch (error) {
+    console.log('[resend] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}
+
+export const logout = (_req, res) => {
+  try {
+    jwt.sign({ logout: true }, process.env.JWT_SECRET_KEY ?? '', {
+      expiresIn: 0,
+    })
+
+    res.status(StatusCodes.OK).json({ success: true, data: null, message: 'Logout successfully' })
   } catch (error) {
     console.log('[resend] Error: ', error)
     res

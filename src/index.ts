@@ -6,7 +6,9 @@ import express from 'express'
 import morgan from 'morgan'
 import userRoutes from './routes/authentication.route'
 import postRoutes from './routes/post.route'
+import syncRoutes from './routes/sync.route'
 import publicRoutes from './routes/public.route'
+import statsRoutes from './routes/stats.route'
 import initializeDBConnection from './database'
 import bodyParser from 'body-parser'
 import { cors } from './utils/cors'
@@ -32,6 +34,8 @@ app.use(bodyParser.json())
 // Write api public which don't need jwt in here
 app.use(userRoutes)
 app.use(publicRoutes)
+app.use(syncRoutes)
+app.use(statsRoutes)
 
 // Verify access token
 app.use((req, res, next) => {

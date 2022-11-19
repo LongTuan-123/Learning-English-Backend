@@ -50,6 +50,7 @@ export const index = async (req, res) => {
       .lean()
       .transform((docs) =>
         docs.map((doc) => ({
+          id: doc._id,
           title: doc.Title,
           imageTitle: doc.ImageTitle,
           description: doc.Description,
@@ -103,7 +104,7 @@ export const create = async (req, res) => {
     })
 
     if (response) {
-      res.status(StatusCodes.OK).json({ success: false, data: null, message: 'You create post successfully' })
+      res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You create post successfully' })
     } else {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You create post fail' })
     }

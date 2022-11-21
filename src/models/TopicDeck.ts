@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 export type TopicDeckType = {
   TopicName: string
-  UserId: number
+  UserId: String
   CreatedAt: number
   UpdatedAt: number
 }
@@ -14,7 +14,7 @@ const TopicDeckSchema = new mongoose.Schema(
       required: true,
     },
     UserId: {
-      type: Number,
+      type: String,
       required: true,
     },
     CreatedAt: {

@@ -47,8 +47,9 @@ export const index = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
-    const { topicName, userId } = req.query
+    const { topicName, userId } = req.body
 
+    console.log(topicName, userId)
     if (!topicName) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Topic Name' })
       return
@@ -59,12 +60,13 @@ export const create = async (req, res) => {
       return
     }
 
-    const checkUser = await UserModel.findById(userId)
+    UserModel.findById(userId, function (err) {
+      if (err) {
+        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Can find this user' })
 
-    if (!checkUser) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Can not find this user' })
-      return
-    }
+        return
+      }
+    })
 
     const currentTimestamp = dayjs.utc().unix()
 

@@ -10,6 +10,7 @@ import syncRoutes from './routes/sync.route'
 import topicDeckRoutes from './routes/topicDeck.route'
 import publicRoutes from './routes/public.route'
 import statsRoutes from './routes/stats.route'
+import cardRoutes from './routes/card.route'
 import initializeDBConnection from './database'
 import bodyParser from 'body-parser'
 import { cors } from './utils/cors'
@@ -71,6 +72,7 @@ app.use(postRoutes)
 app.use(syncRoutes)
 app.use(statsRoutes)
 app.use(topicDeckRoutes)
+app.use(cardRoutes)
 
 app.listen(SERVER_PORT)
 console.log(`Example app listening on port ${SERVER_PORT}`)

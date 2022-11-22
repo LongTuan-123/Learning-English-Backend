@@ -1,11 +1,14 @@
 import mongoose from 'mongoose'
+import { CARD_TYPES } from '../types/card'
 
 export type CardType = {
   Word: string
   Phonetic: string
   Audio: string
   Meanings: string
-  TopicId: string
+  UserId: string
+  TopicName: string
+  Level: CARD_TYPES
   CreatedAt: number
   UpdatedAt: number
 }
@@ -28,9 +31,17 @@ const CardSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-    TopicId: {
+    UserId: {
+      type: String,
+      require: true,
+    },
+    TopicName: {
       type: String,
       required: true,
+    },
+    Level: {
+      type: String,
+      require: true,
     },
     CreatedAt: {
       type: Number,

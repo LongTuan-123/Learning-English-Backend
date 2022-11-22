@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { CardModel } from '../models/Card'
 import { TopicDeckModel } from '../models/TopicDeck'
+import { UserModel } from '../models/User'
 
 dayjs.extend(utc)
 
@@ -16,6 +17,8 @@ export const index = async (req, res) => {
     const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
     const limit = Number(queryString.limit || DEFAULT_ITEM_PER_PAGE)
     const keyword = queryString.keyword || ''
+    const level = queryString.level || ''
+    const topicId = queryString.topicId || ''
     let startDate = queryString.startDate
     let endDate = queryString.endDate
 
@@ -34,7 +37,7 @@ export const index = async (req, res) => {
       endDate = endDate ?? dayjs.utc().endOf('month').unix()
     }
 
-    if (!queryString.topicId) {
+    if (!topicId) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Topic Id' })
       return
     }
@@ -47,7 +50,8 @@ export const index = async (req, res) => {
     const deckInfo = await CardModel.find(
       {
         CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
-        TopicId: queryString.topicId,
+        TopicId: topicId,
+        Level: level,
         Word: { $regex: keyword },
       },
       null,
@@ -62,6 +66,8 @@ export const index = async (req, res) => {
           phonetic: doc.Phonetic,
           audio: doc.Audio,
           meanings: doc.Meanings,
+          topicName: doc.TopicName,
+          level: doc.Level,
           day: doc.CreatedAt,
         })),
       )
@@ -81,7 +87,7 @@ export const index = async (req, res) => {
 
 export const addCard = async (req, res) => {
   try {
-    const { topicId, word, phonetic, audio, meanings } = req.body
+    const { topicName, word, phonetic, audio, meanings, userId, level } = req.body
 
     if (!word) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Word Input' })
@@ -98,9 +104,16 @@ export const addCard = async (req, res) => {
       return
     }
 
-    TopicDeckModel.findById(topicId, function (err) {
+    const haveTopic = await TopicDeckModel.findOne({ TopicName: topicName })
+
+    if (!haveTopic) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this topic' })
+      return
+    }
+
+    UserModel.findById(userId, function (err) {
       if (err) {
-        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You dont have any topic' })
+        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this user' })
         return
       }
     })
@@ -112,7 +125,9 @@ export const addCard = async (req, res) => {
       Phonetic: phonetic,
       Meanings: meanings,
       Audio: audio,
-      TopicId: topicId,
+      TopicName: topicName,
+      UserId: userId,
+      Level: level,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
     })
@@ -147,7 +162,7 @@ export const deleteCard = async (req, res) => {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You delete card fail' })
     }
   } catch (error) {
-    console.log('[add deck] Error: ', error)
+    console.log('[add card] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
@@ -166,7 +181,7 @@ export const detail = async (req, res) => {
       }
     })
   } catch (error) {
-    console.log('[deck detail] Error: ', error)
+    console.log('[card detail] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })

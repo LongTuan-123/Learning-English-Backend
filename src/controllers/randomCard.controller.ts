@@ -1,0 +1,108 @@
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import { getReasonPhrase, StatusCodes } from 'http-status-codes'
+import { CardModel } from '../models/Card'
+import { RandomCardModel } from '../models/RandomCard'
+import { UserModel } from '../models/User'
+
+dayjs.extend(utc)
+
+export const randomCard = async (req, res) => {
+  try {
+    const { userId, numberRandom } = req.query
+    const number = numberRandom || 5
+
+    const userRandomModel = await RandomCardModel.findOne({ UserId: userId })
+
+    if (!userRandomModel) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ success: true, data: null, message: 'You must active your set up in random' })
+      return
+    }
+
+    if (userRandomModel && !userRandomModel.isActivated) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ success: true, data: null, message: 'You must active your set up in random' })
+      return
+    }
+
+    const currentTimestamp = dayjs.utc().startOf('D').add(1, 'day').unix()
+
+    CardModel.aggregate([{ $match: { UserId: userId } }, { $sample: { size: number } }], function (err, docs) {
+      if (err) {
+        res.status(StatusCodes.BAD_REQUEST).json({ success: true, data: null, message: 'You create post successfully' })
+      } else {
+        res
+          .status(StatusCodes.OK)
+          .json({ success: true, data: docs, exp: currentTimestamp, message: 'You create post successfully' })
+      }
+    })
+  } catch (error) {
+    console.log('[random Card] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}
+
+export const setup = async (req, res) => {
+  try {
+    const { number, isActivated, userId } = req.body
+
+    if (number < 0) {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ success: false, data: null, message: 'Number Of word must more than 0' })
+      return
+    }
+
+    UserModel.findById(userId, function (err) {
+      if (err) {
+        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have any user' })
+        return
+      }
+    })
+
+    const currentTimestamp = dayjs.utc().unix()
+
+    const response = await RandomCardModel.create({
+      NumberOfWord: number,
+      isActivated: isActivated,
+      UserId: userId,
+      CreatedAt: currentTimestamp,
+      UpdatedAt: currentTimestamp,
+    })
+
+    if (response) {
+      res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You set up random card successfully' })
+    } else {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You set up random card fail' })
+    }
+  } catch (error) {
+    console.log('[setup] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}
+
+export const checkRandomCardUser = async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    const userSetUp = await RandomCardModel.findOne({ UserId: userId })
+
+    if (!userSetUp) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: null })
+    } else {
+      res.status(StatusCodes.OK).json({ success: true, data: userSetUp, message: null })
+    }
+  } catch (error) {
+    console.log('[setup] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}

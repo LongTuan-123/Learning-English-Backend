@@ -10,10 +10,14 @@ export const index = async (req, res) => {
   try {
     const { userId } = req.query
 
+    if (!userId) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid User Id' })
+      return
+    }
+
     UserModel.findById(userId, function (err) {
       if (err) {
-        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Can find this user' })
-
+        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this user' })
         return
       }
     })
@@ -52,7 +56,6 @@ export const create = async (req, res) => {
   try {
     const { topicName, userId } = req.body
 
-    console.log(topicName, userId)
     if (!topicName) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Topic Name' })
       return

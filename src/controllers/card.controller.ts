@@ -187,3 +187,37 @@ export const detail = async (req, res) => {
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
   }
 }
+
+export const checkCard = async (req, res) => {
+  try {
+    const { word, userId } = req.body
+
+    if (!word || word === '') {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Word' })
+      return
+    }
+
+    UserModel.findById(userId, function (err) {
+      if (err) {
+        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this user' })
+        return
+      }
+    })
+
+    const response = await CardModel.findOne({
+      Word: word,
+      UserId: userId,
+    })
+
+    if (response) {
+      res.status(StatusCodes.OK).json({ success: true, data: response, isSaved: true })
+    } else {
+      res.status(StatusCodes.OK).json({ success: true, data: null, isSaved: false })
+    }
+  } catch (error) {
+    console.log('[save card] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}

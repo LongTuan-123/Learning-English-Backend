@@ -17,8 +17,8 @@ export const index = async (req, res) => {
     const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
     const limit = Number(queryString.limit || DEFAULT_ITEM_PER_PAGE)
     const keyword = queryString.keyword || ''
-    const level = queryString.level || ''
-    const topicId = queryString.topicId || ''
+    const level = queryString.level || 'easy,normal,hard'
+    const topicName = queryString.topicName || ''
     let startDate = queryString.startDate
     let endDate = queryString.endDate
 
@@ -26,6 +26,9 @@ export const index = async (req, res) => {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid start page option' })
       return
     }
+
+    const arrLevel = level.split(',')
+    const arrTopicName = topicName.split(',')
 
     if (Number.isNaN(limit)) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid limit option' })
@@ -37,7 +40,7 @@ export const index = async (req, res) => {
       endDate = endDate ?? dayjs.utc().endOf('month').unix()
     }
 
-    if (!topicId) {
+    if (!topicName) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Topic Id' })
       return
     }
@@ -47,11 +50,21 @@ export const index = async (req, res) => {
     })
     const totalPages = Math.ceil(totalRecords / limit)
 
-    const deckInfo = await CardModel.find(
+    const cardInfo = await CardModel.find(
       {
         CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
-        TopicId: topicId,
-        Level: level,
+        $and: [
+          {
+            $or: arrLevel.map((lv: string) => ({
+              Level: lv,
+            })),
+          },
+          {
+            $or: arrTopicName.map((topic: string) => ({
+              TopicName: topic,
+            })),
+          },
+        ],
         Word: { $regex: keyword },
       },
       null,
@@ -74,11 +87,11 @@ export const index = async (req, res) => {
 
     res.status(StatusCodes.OK).json({
       success: true,
-      data: deckInfo,
+      data: cardInfo,
       pagination: { startPage: startPage + 1, limit: Number(limit), totalPages, totalRecords },
     })
   } catch (error) {
-    console.log('[deck] Error: ', error)
+    console.log('[Card] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })

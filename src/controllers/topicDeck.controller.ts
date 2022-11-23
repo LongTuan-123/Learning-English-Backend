@@ -10,10 +10,13 @@ export const index = async (req, res) => {
   try {
     const { userId } = req.query
 
-    if (!userId) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid User Id' })
-      return
-    }
+    UserModel.findById(userId, function (err) {
+      if (err) {
+        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Can find this user' })
+
+        return
+      }
+    })
 
     const topics = await TopicDeckModel.find(
       {

@@ -9,7 +9,7 @@ import postRoutes from './routes/post.route'
 import syncRoutes from './routes/sync.route'
 import topicDeckRoutes from './routes/topicDeck.route'
 import publicRoutes from './routes/public.route'
-import statsRoutes from './routes/stats.route'
+import privateRoutes from './routes/private.router'
 import cardRoutes from './routes/card.route'
 import initializeDBConnection from './database'
 import bodyParser from 'body-parser'
@@ -70,9 +70,9 @@ app.use((req, res, next) => {
 // Write api private which need jwt in here
 app.use(postRoutes)
 app.use(syncRoutes)
-app.use(statsRoutes)
 app.use(topicDeckRoutes)
 app.use(cardRoutes)
+app.use(privateRoutes)
 
 app.listen(SERVER_PORT)
 console.log(`Example app listening on port ${SERVER_PORT}`)

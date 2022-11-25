@@ -117,6 +117,11 @@ export const addCard = async (req, res) => {
       return
     }
 
+    if (!userId) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid UserId' })
+      return
+    }
+
     const haveTopic = await TopicDeckModel.findOne({ TopicName: topicName })
 
     if (!haveTopic) {
@@ -210,9 +215,15 @@ export const checkCard = async (req, res) => {
       return
     }
 
+    if (!userId) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid UserId' })
+      return
+    }
+
     UserModel.findById(userId, function (err) {
       if (err) {
         res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this user' })
+
         return
       }
     })

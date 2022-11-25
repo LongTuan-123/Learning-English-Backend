@@ -49,9 +49,9 @@ io.on('connection', (socket) => {
     socket.to(data.to).emit('received_msg', data)
   })
 
-  // socket.on('disconnect', () => {
-  //   console.log('User disconnected', socket.id)
-  // })
+  socket.on('disconnect', () => {
+    console.log('User disconnected', socket.id)
+  })
 })
 
 // Check body response for api

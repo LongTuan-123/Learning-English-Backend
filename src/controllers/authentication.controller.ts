@@ -180,7 +180,31 @@ export const logout = (_req, res) => {
 
     res.status(StatusCodes.OK).json({ success: true, data: null, message: 'Logout successfully' })
   } catch (error) {
-    console.log('[resend] Error: ', error)
+    console.log('[log out] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}
+
+export const getListUser = async (req, res) => {
+  try {
+    const response = await UserModel.find({}, null, {})
+      .lean()
+      .transform((docs) =>
+        docs.map((doc) => ({
+          id: doc._id,
+          email: doc.Email,
+        })),
+      )
+
+    if (response) {
+      res.status(StatusCodes.OK).json({ success: true, data: response, message: null })
+    } else {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: null })
+    }
+  } catch (error) {
+    console.log('[get list user] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })

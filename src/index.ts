@@ -14,6 +14,8 @@ import cardRoutes from './routes/card.route'
 import initializeDBConnection from './database'
 import bodyParser from 'body-parser'
 import { cors } from './utils/cors'
+import { Server } from 'socket.io'
+import http from 'http'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import jsonwebtoken, { TokenExpiredError } from 'jsonwebtoken'
 
@@ -27,6 +29,30 @@ app.use(morgan('combined'))
 
 // Check CORS for website
 app.use(cors)
+
+const server = http.createServer(app)
+
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+})
+
+io.on('connection', (socket) => {
+  socket.on('users', (data) => {
+    socket.join(data)
+  })
+
+  socket.on('send_msg', (data) => {
+    console.log(data)
+    socket.to(data.to).emit('received_msg', data)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected', socket.id)
+  })
+})
 
 // Check body response for api
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -74,5 +100,5 @@ app.use(topicDeckRoutes)
 app.use(cardRoutes)
 app.use(privateRoutes)
 
-app.listen(SERVER_PORT)
+server.listen(SERVER_PORT)
 console.log(`Example app listening on port ${SERVER_PORT}`)

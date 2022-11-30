@@ -5,7 +5,7 @@ import utc from 'dayjs/plugin/utc'
 dayjs.extend(utc)
 
 export type MessageType = {
-  Message: { Text: string }
+  Message: { Text: string; Type: string }
   Users: unknown
   Sender: mongoose.Schema.Types.ObjectId
 }
@@ -14,6 +14,10 @@ const MessageSchema = new mongoose.Schema(
   {
     Message: {
       Text: {
+        type: String,
+        required: true,
+      },
+      Type: {
         type: String,
         required: true,
       },

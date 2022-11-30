@@ -1,12 +1,15 @@
 import { StatusCodes } from 'http-status-codes'
 import { MessageModel } from '../models/Message'
 
+const DEFAULT_START_PAGE = 1
+const DEFAULT_ITEM_PER_PAGE = 5
+
 export const sendMsg = async (req, res, next) => {
   try {
-    const { from, to, message } = req.body
+    const { from, to, message, type } = req.body
 
     const response = await MessageModel.create({
-      Message: { Text: message },
+      Message: { Text: message, Type: type },
       Users: [from, to],
       Sender: from,
     })
@@ -23,25 +26,43 @@ export const sendMsg = async (req, res, next) => {
 
 export const receivedMsg = async (req, res, next) => {
   try {
-    const { from, to } = req.body
-    const response = await MessageModel.find({
+    const { from, to, page, limit } = req.body
+
+    const startPage = Number((page || DEFAULT_START_PAGE) - 1)
+    const limitPage = Number(limit || DEFAULT_ITEM_PER_PAGE)
+
+    const totalRecords = await MessageModel.countDocuments({
       Users: {
         $all: [from, to],
       },
-    }).sort({ updatedAt: 1 })
-
-    const messages = response.map((mess) => {
-      return {
-        fromSelf: mess.Sender.toString() === from,
-        message: mess.Message.Text,
-      }
     })
+    const totalPages = Math.ceil(totalRecords / limit)
 
-    if (messages) {
-      res.status(StatusCodes.OK).json({ success: true, data: messages, message: null })
-    } else {
-      res.status(StatusCodes.OK).json({ success: true, data: null, message: 'Dont have any data' })
-    }
+    const response = await MessageModel.find(
+      {
+        Users: {
+          $all: [from, to],
+        },
+      },
+      null,
+      { skip: startPage * limitPage, limit: limitPage },
+    )
+      .sort({ createdAt: -1 })
+      .lean()
+      .transform((docs) =>
+        docs.map((mess) => ({
+          fromSelf: mess.Sender.toString(),
+          message: mess.Message.Text,
+          type: mess.Message.Type,
+        })),
+      )
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: response,
+      message: null,
+      pagination: { startPage: startPage + 1, limit: Number(limit), totalPages, totalRecords },
+    })
   } catch (error) {
     next(error)
   }

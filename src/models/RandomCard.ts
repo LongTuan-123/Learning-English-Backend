@@ -4,6 +4,8 @@ export type RandomCardType = {
   NumberOfWord: number
   isActivated: boolean
   UserId: string
+  Topic: string
+  Level: string
   CreatedAt: number
   UpdatedAt: number
 }
@@ -13,6 +15,14 @@ const RandomCardSchema = new mongoose.Schema(
     NumberOfWord: {
       type: Number,
       required: true,
+    },
+    Level: {
+      type: String,
+      require: true,
+    },
+    Topic: {
+      type: String,
+      require: true,
     },
     isActivated: {
       type: Boolean,

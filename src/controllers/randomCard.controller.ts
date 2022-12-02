@@ -9,8 +9,10 @@ dayjs.extend(utc)
 
 export const randomCard = async (req, res) => {
   try {
-    const { userId, numberRandom } = req.query
+    const { userId, numberRandom, topicName, level } = req.query
     const number = Number(numberRandom) || 5
+
+    const arrLevel = level.split(',')
 
     const userRandomModel = await RandomCardModel.findOne({ UserId: userId })
 
@@ -30,15 +32,31 @@ export const randomCard = async (req, res) => {
 
     const currentTimestamp = dayjs.utc().startOf('D').add(1, 'day').unix()
 
-    CardModel.aggregate([{ $match: { UserId: userId } }, { $sample: { size: number } }], function (err, docs) {
-      if (err) {
-        res.status(StatusCodes.BAD_REQUEST).json({ success: true, data: null, message: 'You create post successfully' })
-      } else {
-        res
-          .status(StatusCodes.OK)
-          .json({ success: true, data: docs, exp: currentTimestamp, message: 'You create post successfully' })
-      }
-    })
+    CardModel.aggregate(
+      [
+        {
+          $match: {
+            UserId: userId,
+            Topic: topicName,
+            $or: arrLevel.map((lv: string) => ({
+              Level: lv,
+            })),
+          },
+        },
+        { $sample: { size: number } },
+      ],
+      function (err, docs) {
+        if (err) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ success: true, data: null, message: 'You create post successfully' })
+        } else {
+          res
+            .status(StatusCodes.OK)
+            .json({ success: true, data: docs, exp: currentTimestamp, message: 'You create post successfully' })
+        }
+      },
+    )
   } catch (error) {
     console.log('[random Card] Error: ', error)
     res
@@ -49,7 +67,7 @@ export const randomCard = async (req, res) => {
 
 export const setup = async (req, res) => {
   try {
-    const { number, isActivated, userId } = req.body
+    const { number, isActivated, userId, topicName, level } = req.body
 
     if (number < 0) {
       res
@@ -71,6 +89,8 @@ export const setup = async (req, res) => {
       NumberOfWord: number,
       isActivated: isActivated,
       UserId: userId,
+      Level: level,
+      Topic: topicName,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
     })
@@ -79,6 +99,33 @@ export const setup = async (req, res) => {
       res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You set up random card successfully' })
     } else {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You set up random card fail' })
+    }
+  } catch (error) {
+    console.log('[setup] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}
+
+export const updateSetUp = async (req, res) => {
+  try {
+    const { userId, number, level, topic } = req.body
+
+    const response = await RandomCardModel.updateOne(
+      { UserId: userId },
+      { $set: { NumberOfWord: number, Level: level, Topic: topic } },
+      { upsert: true },
+    )
+
+    if (response) {
+      res
+        .status(StatusCodes.OK)
+        .json({ success: true, data: null, message: 'You update set up random card successfully' })
+    } else {
+      res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ success: false, data: null, message: 'You update set up random card fail' })
     }
   } catch (error) {
     console.log('[setup] Error: ', error)

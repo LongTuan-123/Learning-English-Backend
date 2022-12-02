@@ -10,7 +10,7 @@ dayjs.extend(utc)
 export const randomCard = async (req, res) => {
   try {
     const { userId, numberRandom } = req.query
-    const number = numberRandom || 5
+    const number = Number(numberRandom) || 5
 
     const userRandomModel = await RandomCardModel.findOne({ UserId: userId })
 

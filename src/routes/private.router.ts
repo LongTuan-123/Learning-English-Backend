@@ -7,6 +7,8 @@ const router = express.Router()
 
 // Api random card
 router.get('/api/random', randomController.randomCard)
+router.post('/api/setup', randomController.setup)
+router.get('/api/check-random', randomController.checkRandomCardUser)
 
 // Api get stats
 router.get('/api/post-stats', postStatsController.getPostStats)

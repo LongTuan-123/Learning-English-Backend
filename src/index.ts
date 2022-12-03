@@ -56,11 +56,13 @@ io.on('connection', (socket) => {
   })
 
   socket.on('check_active', (data) => {
-    console.log(data)
-    if (data.to === users[socket.id]) {
-      socket.to(data.from).emit('active', true)
-    } else {
-      socket.to(data.from).emit('active', false)
+    for (const [key, value] of Object.entries(users)) {
+      if (value === data.to) {
+        socket.emit('active', true)
+        break
+      } else {
+        socket.emit('active', false)
+      }
     }
   })
 
@@ -69,6 +71,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('disconnect', () => {
+    console.log('User disconnect', users[socket.id])
     delete users[socket.id]
   })
 })

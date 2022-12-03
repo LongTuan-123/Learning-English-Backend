@@ -9,10 +9,7 @@ dayjs.extend(utc)
 
 export const randomCard = async (req, res) => {
   try {
-    const { userId, numberRandom, topicName, level } = req.query
-    const number = Number(numberRandom) || 5
-
-    const arrLevel = level.split(',')
+    const { userId } = req.query
 
     const userRandomModel = await RandomCardModel.findOne({ UserId: userId })
 
@@ -29,6 +26,12 @@ export const randomCard = async (req, res) => {
         .json({ success: true, data: null, message: 'You must active your set up in random' })
       return
     }
+
+    const number = userRandomModel.NumberOfWord
+    const level = userRandomModel.Level
+    const topicName = userRandomModel.Topic
+
+    const arrLevel = level.split(',')
 
     const currentTimestamp = dayjs.utc().startOf('D').add(1, 'day').unix()
 

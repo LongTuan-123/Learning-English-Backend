@@ -39,18 +39,37 @@ const io = new Server(server, {
   },
 })
 
+const users = {}
 io.on('connection', (socket) => {
   socket.on('users', (data) => {
     socket.join(data)
   })
 
+  socket.on('connect_chat', function (data) {
+    // saving userId to object with socket ID
+    console.log(users)
+    users[socket.id] = data
+  })
+
   socket.on('send_msg', (data) => {
-    console.log(data)
     socket.to(data.to).emit('received_msg', data)
   })
 
+  socket.on('check_active', (data) => {
+    console.log(data)
+    if (data.to === users[socket.id]) {
+      socket.to(data.from).emit('active', true)
+    } else {
+      socket.to(data.from).emit('active', false)
+    }
+  })
+
+  socket.on('send_typing', (data) => {
+    socket.to(data.to).emit('is_typing', data)
+  })
+
   socket.on('disconnect', () => {
-    console.log('User disconnected', socket.id)
+    delete users[socket.id]
   })
 })
 

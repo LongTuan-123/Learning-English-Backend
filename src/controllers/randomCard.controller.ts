@@ -40,7 +40,7 @@ export const randomCard = async (req, res) => {
         {
           $match: {
             UserId: userId,
-            Topic: topicName,
+            TopicName: topicName,
             $or: arrLevel.map((lv: string) => ({
               Level: lv,
             })),

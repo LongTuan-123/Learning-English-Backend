@@ -46,13 +46,13 @@ export const index = async (req, res) => {
     }
 
     const totalRecords = await CardModel.countDocuments({
-      CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
+      // CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
     })
     const totalPages = Math.ceil(totalRecords / limit)
 
     const cardInfo = await CardModel.find(
       {
-        CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
+        // CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
         $and: [
           {
             $or: arrLevel.map((lv: string) => ({

@@ -27,11 +27,21 @@ export const randomCard = async (req, res) => {
       return
     }
 
-    const number = userRandomModel.NumberOfWord
+    const number = userRandomModel.NumberOfWord || 10
     const level = userRandomModel.Level
     const topicName = userRandomModel.Topic
 
-    const arrLevel = level.split(',')
+    if (!topicName) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: true, data: null, message: 'You must set up topic' })
+      return
+    }
+    let arrLevel
+
+    if (level.split(',').length === 0) {
+      arrLevel = ['easy', 'normal', 'hard']
+    } else {
+      arrLevel = level.split(',')
+    }
 
     const currentTimestamp = dayjs.utc().startOf('D').add(1, 'day').unix()
 

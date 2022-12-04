@@ -155,7 +155,7 @@ export const checkRandomCardUser = async (req, res) => {
     const userSetUp = await RandomCardModel.findOne({ UserId: userId })
 
     if (!userSetUp) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: null })
+      res.status(StatusCodes.OK).json({ success: false, data: null, message: null })
     } else {
       res.status(StatusCodes.OK).json({ success: true, data: userSetUp, message: null })
     }

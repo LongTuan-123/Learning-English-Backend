@@ -123,11 +123,11 @@ export const setup = async (req, res) => {
 
 export const updateSetUp = async (req, res) => {
   try {
-    const { userId, number, level, topic } = req.body
+    const { userId, number, level, topicName } = req.body
 
     const response = await RandomCardModel.updateOne(
       { UserId: userId },
-      { $set: { NumberOfWord: number, Level: level, Topic: topic } },
+      { $set: { NumberOfWord: number, Level: level, Topic: topicName } },
       { upsert: true },
     )
 
@@ -155,7 +155,7 @@ export const checkRandomCardUser = async (req, res) => {
     const userSetUp = await RandomCardModel.findOne({ UserId: userId })
 
     if (!userSetUp) {
-      res.status(StatusCodes.OK).json({ success: false, data: null, message: null })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: null })
     } else {
       res.status(StatusCodes.OK).json({ success: true, data: userSetUp, message: null })
     }

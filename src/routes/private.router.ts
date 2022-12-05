@@ -1,9 +1,13 @@
 import express from 'express'
+import * as authController from '../controllers/authentication.controller'
 import * as randomController from '../controllers/randomCard.controller'
 import * as postStatsController from '../controllers/stats.controller'
 import * as messageController from '../controllers/message.controller'
 
 const router = express.Router()
+
+// Api log out
+router.post('/api/auth/logout', authController.logout)
 
 // Api random card
 router.get('/api/random', randomController.randomCard)

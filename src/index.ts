@@ -18,6 +18,7 @@ import { Server } from 'socket.io'
 import http from 'http'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import jsonwebtoken, { TokenExpiredError } from 'jsonwebtoken'
+import { SOCKET_KEYS } from './types/socket'
 
 const DEFAULT_SERVER_PORT = 4000
 const SERVER_PORT = process.env.SERVER_PORT ? Number(process.env.SERVER_PORT) : DEFAULT_SERVER_PORT
@@ -40,39 +41,73 @@ const io = new Server(server, {
 })
 
 const users = {}
-io.on('connection', (socket) => {
-  socket.on('users', (data) => {
+const calling = {}
+
+io.on(SOCKET_KEYS.CONNECTION, (socket) => {
+  socket.on(SOCKET_KEYS.USERS, (data) => {
     socket.join(data)
+    console.log(socket.id)
   })
 
-  socket.on('connect_chat', function (data) {
-    // saving userId to object with socket ID
-    console.log(users)
+  socket.on(SOCKET_KEYS.CONNECT_CHAT, function (data) {
     users[socket.id] = data
   })
 
-  socket.on('send_msg', (data) => {
-    socket.to(data.to).emit('received_msg', data)
+  socket.on(SOCKET_KEYS.SEND_MESSAGE, (data) => {
+    socket.to(data.to).emit(SOCKET_KEYS.RECEIVED_MESSAGE, data)
   })
 
-  socket.on('check_active', (data) => {
+  socket.on(SOCKET_KEYS.CHECK_ACTIVE, (data) => {
     for (const [key, value] of Object.entries(users)) {
       if (value === data.to) {
-        socket.emit('active', true)
+        socket.emit(SOCKET_KEYS.ACTIVE, true)
         break
       } else {
-        socket.emit('active', false)
+        socket.emit(SOCKET_KEYS.ACTIVE, false)
       }
     }
   })
 
-  socket.on('send_typing', (data) => {
-    socket.to(data.to).emit('is_typing', data)
+  socket.on(SOCKET_KEYS.SEND_IP_CALL, (data) => {
+    let count: number = 0
+    for (const [key, value] of Object.entries(calling)) {
+      if (value === data.to) {
+        count += 1
+        break
+      }
+    }
+    if (count === 0) {
+      socket.to(data.to).emit(SOCKET_KEYS.RECEIVED_IP_CALL, data)
+      calling[socket.id] = data.from
+      calling[socket.id] = data.to
+    } else {
+      socket.emit(SOCKET_KEYS.RECEIVED_IP_CALL, {
+        from: data.to,
+        message: 'User have been busy',
+      })
+    }
   })
 
-  socket.on('disconnect', () => {
-    console.log('User disconnect', users[socket.id])
+  socket.on(SOCKET_KEYS.ACCEPT_IP_CALL, (data) => {
+    console.log(data)
+    socket.to(data.to).emit(SOCKET_KEYS.RECEIVED_ACCEPT_IP_CALL, data)
+  })
+
+  socket.on(SOCKET_KEYS.REJECT_IP_CALL, (data) => {
+    for (const [key, value] of Object.entries(calling)) {
+      if (value === data.to || value === data.from) {
+        delete calling[key]
+      }
+    }
+  })
+
+  socket.on(SOCKET_KEYS.SEND_TYPING, (data) => {
+    socket.to(data.to).emit(SOCKET_KEYS.IS_TYPING, data)
+  })
+
+  socket.on(SOCKET_KEYS.DISCONNECT, () => {
     delete users[socket.id]
+    delete calling[socket.id]
   })
 })
 

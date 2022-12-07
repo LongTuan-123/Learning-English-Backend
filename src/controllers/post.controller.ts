@@ -160,7 +160,7 @@ export const detailPost = (req, res) => {
   }
 }
 
-export const updatePost = (req, res) => {
+export const updatePost = async (req, res) => {
   try {
     const { title, imageTitle, description, post_id } = req.body
 

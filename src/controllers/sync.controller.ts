@@ -3,6 +3,8 @@ import utc from 'dayjs/plugin/utc'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import { PostModel } from '../models/Post'
 import { PostStatsModel } from '../models/PostStats'
+import { ResultExamModel } from '../models/ResultExam'
+import { ResultExamStatsModel } from '../models/ResultExamStats'
 
 dayjs.extend(utc)
 
@@ -49,6 +51,59 @@ export const syncPostAmountStats = async (req, res) => {
     }
 
     await PostStatsModel.findOneAndUpdate({ Day: endTime }, amountRecord, { upsert: true })
+
+    res.status(StatusCodes.OK).json({ success: true, result: { total_minted: totalPostAmount, end_of_day: endTime } })
+  } catch (error) {
+    console.log('[post] Error: ', error)
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
+  }
+}
+
+export const syncResultExamAmountStats = async (req, res) => {
+  const queryString = req.query
+
+  let startTime: null | number = null
+  let endTime: null | number = null
+
+  if (typeof queryString.startTime !== 'undefined') {
+    startTime = dayjs
+      .utc(Number(queryString.startTime) * 1000)
+      .startOf('day')
+      .unix()
+    endTime = dayjs
+      .utc(Number(queryString.startTime) * 1000)
+      .endOf('day')
+      .unix()
+  } else {
+    res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid time query' })
+    return
+  }
+
+  try {
+    const amountResponse = await ResultExamStatsModel.findOne({ Day: endTime }).lean()
+
+    if (amountResponse && Object.keys(amountResponse).length > 0) {
+      res
+        .status(StatusCodes.OK)
+        .json({ success: true, result: { total_minted: amountResponse.Amount, end_of_day: amountResponse.Day } })
+
+      return
+    }
+
+    const totalPostAmount = await ResultExamModel.countDocuments({
+      CreatedAt: { $gte: startTime, $lte: endTime },
+    })
+
+    const amountRecord = {
+      Day: endTime,
+      Amount: totalPostAmount,
+      CreatedAt: dayjs.utc().unix(),
+      UpdatedAt: dayjs.utc().unix(),
+    }
+
+    await ResultExamStatsModel.findOneAndUpdate({ Day: endTime }, amountRecord, { upsert: true })
 
     res.status(StatusCodes.OK).json({ success: true, result: { total_minted: totalPostAmount, end_of_day: endTime } })
   } catch (error) {

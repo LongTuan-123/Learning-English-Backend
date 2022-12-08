@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 export type RandomCardType = {
   NumberOfWord: number
   isActivated: boolean
-  UserId: string
+  UserId: mongoose.Schema.Types.ObjectId
   Topic: string
   Level: string
   CreatedAt: number
@@ -29,8 +29,9 @@ const RandomCardSchema = new mongoose.Schema(
       required: true,
     },
     UserId: {
-      type: String,
-      require: false,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     CreatedAt: {
       type: Number,

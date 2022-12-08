@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { SKILLS } from '../types/common'
 
 dayjs.extend(utc)
 
@@ -8,6 +9,7 @@ export type ResultExamType = {
   ResultExam: string
   Topic: string
   User: mongoose.Schema.Types.ObjectId
+  Skills: SKILLS
   CreatedAt: number
   UpdatedAt: number
 }
@@ -26,6 +28,10 @@ const ResultExamSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    Skills: {
+      type: String,
+      require: true,
     },
     CreatedAt: {
       type: Number,

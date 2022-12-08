@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { CardModel } from '../models/Card'
 import { TopicDeckModel } from '../models/TopicDeck'
-import { UserModel } from '../models/User'
 
 dayjs.extend(utc)
 
@@ -129,13 +128,6 @@ export const addCard = async (req, res) => {
       return
     }
 
-    UserModel.findById(userId, function (err) {
-      if (err) {
-        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this user' })
-        return
-      }
-    })
-
     const currentTimestamp = dayjs.utc().unix()
 
     const response = await CardModel.create({
@@ -219,14 +211,6 @@ export const checkCard = async (req, res) => {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid UserId' })
       return
     }
-
-    UserModel.findById(userId, function (err) {
-      if (err) {
-        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have this user' })
-
-        return
-      }
-    })
 
     const response = await CardModel.findOne({
       Word: word,

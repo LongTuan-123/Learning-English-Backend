@@ -6,7 +6,7 @@ export type CardType = {
   Phonetic: string
   Audio: string
   Meanings: string
-  UserId: string
+  UserId: mongoose.Schema.Types.ObjectId
   TopicName: string
   Level: CARD_TYPES
   CreatedAt: number
@@ -32,8 +32,9 @@ const CardSchema = new mongoose.Schema(
       require: true,
     },
     UserId: {
-      type: String,
-      require: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     TopicName: {
       type: String,

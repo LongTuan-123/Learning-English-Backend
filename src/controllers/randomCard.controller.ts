@@ -89,13 +89,6 @@ export const setup = async (req, res) => {
       return
     }
 
-    UserModel.findById(userId, function (err) {
-      if (err) {
-        res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Dont have any user' })
-        return
-      }
-    })
-
     const currentTimestamp = dayjs.utc().unix()
 
     const response = await RandomCardModel.create({

@@ -3,8 +3,8 @@ import utc from 'dayjs/plugin/utc'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import { PostModel } from '../models/Post'
 import { PostStatsModel } from '../models/PostStats'
-import { ResultExamModel } from '../models/ResultExam'
-import { ResultExamStatsModel } from '../models/ResultExamStats'
+import { ResultTestModel } from '../models/ResultTest'
+import { ResultTestStatsModel } from '../models/ResultTestStats'
 
 dayjs.extend(utc)
 
@@ -61,7 +61,7 @@ export const syncPostAmountStats = async (req, res) => {
   }
 }
 
-export const syncResultExamAmountStats = async (req, res) => {
+export const syncResultTestAmountStats = async (req, res) => {
   const queryString = req.query
 
   let startTime: null | number = null
@@ -82,7 +82,7 @@ export const syncResultExamAmountStats = async (req, res) => {
   }
 
   try {
-    const amountResponse = await ResultExamStatsModel.findOne({ Day: endTime }).lean()
+    const amountResponse = await ResultTestStatsModel.findOne({ Day: endTime }).lean()
 
     if (amountResponse && Object.keys(amountResponse).length > 0) {
       res
@@ -92,7 +92,7 @@ export const syncResultExamAmountStats = async (req, res) => {
       return
     }
 
-    const totalPostAmount = await ResultExamModel.countDocuments({
+    const totalPostAmount = await ResultTestModel.countDocuments({
       CreatedAt: { $gte: startTime, $lte: endTime },
     })
 
@@ -103,7 +103,7 @@ export const syncResultExamAmountStats = async (req, res) => {
       UpdatedAt: dayjs.utc().unix(),
     }
 
-    await ResultExamStatsModel.findOneAndUpdate({ Day: endTime }, amountRecord, { upsert: true })
+    await ResultTestStatsModel.findOneAndUpdate({ Day: endTime }, amountRecord, { upsert: true })
 
     res.status(StatusCodes.OK).json({ success: true, result: { total_minted: totalPostAmount, end_of_day: endTime } })
   } catch (error) {

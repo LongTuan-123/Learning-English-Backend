@@ -1,14 +1,14 @@
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { ResultExamModel } from '../models/ResultExam'
+import { ResultTestModel } from '../models/ResultTest'
 
 dayjs.extend(utc)
 
 const DEFAULT_START_PAGE = 1
 const DEFAULT_ITEM_PER_PAGE = 10
 
-export const getResultExam = async (req, res) => {
+export const getResultTest = async (req, res) => {
   const queryString = req.query
 
   const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
@@ -39,13 +39,13 @@ export const getResultExam = async (req, res) => {
   }
 
   try {
-    const totalRecords = await ResultExamModel.countDocuments({
+    const totalRecords = await ResultTestModel.countDocuments({
       CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
       User: userId,
     })
     const totalPages = Math.ceil(totalRecords / limit)
 
-    const posts = await ResultExamModel.find(
+    const posts = await ResultTestModel.find(
       {
         CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
         Topic: { $regex: keyword },
@@ -59,7 +59,7 @@ export const getResultExam = async (req, res) => {
       .transform((docs) =>
         docs.map((doc) => ({
           id: doc._id,
-          result: doc.ResultExam,
+          result: doc.ResultTest,
           topic: doc.Topic,
           day: doc.CreatedAt,
         })),
@@ -78,11 +78,11 @@ export const getResultExam = async (req, res) => {
   }
 }
 
-export const addResultExam = async (req, res) => {
+export const addResultTest = async (req, res) => {
   try {
-    const { resultExam, topic, userId } = req.body
+    const { ResultTest, topicName, userId } = req.body
 
-    if (!resultExam) {
+    if (!ResultTest) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid result exam' })
       return
     }
@@ -92,17 +92,17 @@ export const addResultExam = async (req, res) => {
       return
     }
 
-    if (!topic) {
+    if (!topicName) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Topic' })
       return
     }
 
     const currentTimestamp = dayjs.utc().unix()
 
-    const response = await ResultExamModel.create({
-      ResultExam: resultExam,
+    const response = await ResultTestModel.create({
+      ResultTest: ResultTest,
       User: userId,
-      Topic: topic,
+      Topic: topicName,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
     })

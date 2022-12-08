@@ -3,7 +3,7 @@ import * as authController from '../controllers/authentication.controller'
 import * as randomController from '../controllers/randomCard.controller'
 import * as postStatsController from '../controllers/stats.controller'
 import * as messageController from '../controllers/message.controller'
-import * as resultExamController from '../controllers/resultExam.controller'
+import * as resultTestController from '../controllers/resultExam.controller'
 import * as speakingController from '../controllers/speaking.controller'
 
 const router = express.Router()
@@ -25,8 +25,8 @@ router.post('/api/message/send-msg', messageController.sendMsg)
 router.post('/api/message/received-msg', messageController.receivedMsg)
 
 // Api result exam
-router.get('/api/result-exam', resultExamController.getResultExam)
-router.post('/api/result-exam/add', resultExamController.addResultExam)
+router.get('/api/result-test', resultTestController.getResultTest)
+router.post('/api/result-test/add', resultTestController.addResultTest)
 
 // Api Speaking
 router.get('/api/speaking', speakingController.getSpeaking)

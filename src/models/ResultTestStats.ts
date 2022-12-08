@@ -4,14 +4,14 @@ import utc from 'dayjs/plugin/utc'
 
 dayjs.extend(utc)
 
-export type ResultExamStats = {
+export type ResultTestStats = {
   Day: number
   Amount: string
   CreatedAt: number
   UpdatedAt: number
 }
 
-const ResultExamAmountSchema = new mongoose.Schema(
+const ResultTestAmountSchema = new mongoose.Schema(
   {
     Day: {
       type: Number,
@@ -29,9 +29,9 @@ const ResultExamAmountSchema = new mongoose.Schema(
     },
   },
   {
-    collection: 'ResultExamStats',
+    collection: 'ResultTestStats',
     versionKey: false,
   },
 )
 
-export const ResultExamStatsModel = mongoose.model<ResultExamStats>('ResultExamStats', ResultExamAmountSchema)
+export const ResultTestStatsModel = mongoose.model<ResultTestStats>('ResultTestStats', ResultTestAmountSchema)

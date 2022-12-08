@@ -5,8 +5,8 @@ import { SKILLS } from '../types/common'
 
 dayjs.extend(utc)
 
-export type ResultExamType = {
-  ResultExam: string
+export type ResultTestType = {
+  ResultTest: string
   Topic: string
   User: mongoose.Schema.Types.ObjectId
   Skills: SKILLS
@@ -14,9 +14,9 @@ export type ResultExamType = {
   UpdatedAt: number
 }
 
-const ResultExamSchema = new mongoose.Schema(
+const ResultTestSchema = new mongoose.Schema(
   {
-    ResultExam: {
+    ResultTest: {
       type: String,
       require: true,
     },
@@ -43,8 +43,8 @@ const ResultExamSchema = new mongoose.Schema(
     },
   },
   {
-    collection: 'ResultExam',
+    collection: 'ResultTest',
   },
 )
 
-export const ResultExamModel = mongoose.model<ResultExamType>('ResultExam', ResultExamSchema)
+export const ResultTestModel = mongoose.model<ResultTestType>('ResultTest', ResultTestSchema)

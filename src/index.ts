@@ -41,12 +41,13 @@ const io = new Server(server, {
 })
 
 const users = {}
-const calling = {}
+
+const socketToRoom = {}
+const usersRoom = {}
 
 io.on(SOCKET_KEYS.CONNECTION, (socket) => {
   socket.on(SOCKET_KEYS.USERS, (data) => {
     socket.join(data)
-    console.log(socket.id)
   })
 
   socket.on(SOCKET_KEYS.CONNECT_CHAT, function (data) {
@@ -68,37 +69,29 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
     }
   })
 
-  socket.on(SOCKET_KEYS.SEND_IP_CALL, (data) => {
-    let count: number = 0
-    for (const [key, value] of Object.entries(calling)) {
-      if (value === data.to) {
-        count += 1
-        break
+  socket.on('join-room', (roomID) => {
+    if (usersRoom[roomID]) {
+      const length = usersRoom[roomID].length
+      if (length === 4) {
+        socket.emit('room-full')
+        return
       }
-    }
-    if (count === 0) {
-      socket.to(data.to).emit(SOCKET_KEYS.RECEIVED_IP_CALL, data)
-      calling[socket.id] = data.from
-      calling[socket.id] = data.to
+      usersRoom[roomID].push(socket.id)
     } else {
-      socket.emit(SOCKET_KEYS.RECEIVED_IP_CALL, {
-        from: data.to,
-        message: 'User have been busy',
-      })
+      usersRoom[roomID] = [socket.id]
     }
+    socketToRoom[socket.id] = roomID
+    const usersInThisRoom = usersRoom[roomID].filter((id) => id !== socket.id)
+
+    socket.emit('all-users', usersInThisRoom)
   })
 
-  socket.on(SOCKET_KEYS.ACCEPT_IP_CALL, (data) => {
-    console.log(data)
-    socket.to(data.to).emit(SOCKET_KEYS.RECEIVED_ACCEPT_IP_CALL, data)
+  socket.on('sending-signal', (payload) => {
+    io.to(payload.userToSignal).emit('user-joined', { signal: payload.signal, callerID: payload.callerID })
   })
 
-  socket.on(SOCKET_KEYS.REJECT_IP_CALL, (data) => {
-    for (const [key, value] of Object.entries(calling)) {
-      if (value === data.to || value === data.from) {
-        delete calling[key]
-      }
-    }
+  socket.on('returning-signal', (payload) => {
+    io.to(payload.callerID).emit('receiving-returned-signal', { signal: payload.signal, id: socket.id })
   })
 
   socket.on(SOCKET_KEYS.SEND_TYPING, (data) => {
@@ -107,7 +100,12 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
 
   socket.on(SOCKET_KEYS.DISCONNECT, () => {
     delete users[socket.id]
-    delete calling[socket.id]
+    const roomID = socketToRoom[socket.id]
+    let room = usersRoom[roomID]
+    if (room) {
+      room = room.filter((id) => id !== socket.id)
+      usersRoom[roomID] = room
+    }
   })
 })
 

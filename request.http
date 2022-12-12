@@ -1,0 +1,19 @@
+### Api Register
+POST http://localhost:4000/api/auth/register
+content-type: application/json
+
+{
+  "email": "newgeneration1309@gmail.com",
+  "password": "123456"
+}
+
+### Api Verify
+POST http://localhost:4000/api/auth/verify
+content-type: application/json
+
+{
+  "email": "newgeneration1309@gmail.com",
+  "otpCode": "443674"
+}
+
+

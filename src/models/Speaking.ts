@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 
 export type SpeakingType = {
   Question: string
-  AudioQuestion: string
   TopicName: string
   ExpiredTimeSpeak: number
   CreatedAt: number
@@ -12,10 +11,6 @@ export type SpeakingType = {
 const SpeakingSchema = new mongoose.Schema(
   {
     Question: {
-      type: String,
-      required: true,
-    },
-    AudioQuestion: {
       type: String,
       required: true,
     },

@@ -45,7 +45,7 @@ export const getResultTest = async (req, res) => {
     })
     const totalPages = Math.ceil(totalRecords / limit)
 
-    const posts = await ResultTestModel.find(
+    const resultSkill = await ResultTestModel.find(
       {
         CreatedAt: { $gte: Number(startDate), $lte: Number(endDate) },
         Topic: { $regex: keyword },
@@ -67,7 +67,7 @@ export const getResultTest = async (req, res) => {
 
     res.status(StatusCodes.OK).json({
       success: true,
-      data: posts,
+      data: resultSkill,
       pagination: { startPage: startPage + 1, limit: Number(limit), totalPages, totalRecords },
     })
   } catch (error) {
@@ -80,9 +80,9 @@ export const getResultTest = async (req, res) => {
 
 export const addResultTest = async (req, res) => {
   try {
-    const { ResultTest, topicName, userId } = req.body
+    const { resultTest, topicName, userId } = req.body
 
-    if (!ResultTest) {
+    if (!resultTest) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid result exam' })
       return
     }
@@ -100,7 +100,7 @@ export const addResultTest = async (req, res) => {
     const currentTimestamp = dayjs.utc().unix()
 
     const response = await ResultTestModel.create({
-      ResultTest: ResultTest,
+      ResultTest: resultTest,
       User: userId,
       Topic: topicName,
       CreatedAt: currentTimestamp,

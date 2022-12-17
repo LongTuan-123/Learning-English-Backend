@@ -2,13 +2,14 @@ import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { SpeakingModel } from '../models/Speaking'
+import { ResultSkillModel } from '../models/ResultSkill'
 
 dayjs.extend(utc)
 
 const DEFAULT_START_PAGE = 1
 const DEFAULT_ITEM_PER_PAGE = 10
 
-export const getSpeaking = async (req, res) => {
+export const getResultSkill = async (req, res) => {
   const queryString = req.query
 
   const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
@@ -31,12 +32,12 @@ export const getSpeaking = async (req, res) => {
   }
 
   try {
-    const totalRecords = await SpeakingModel.countDocuments({
+    const totalRecords = await ResultSkillModel.countDocuments({
       TopicName: topicName,
     })
     const totalPages = Math.ceil(totalRecords / limit)
 
-    const speaking = await SpeakingModel.find(
+    const speaking = await ResultSkillModel.find(
       {
         TopicName: topicName,
       },
@@ -48,9 +49,9 @@ export const getSpeaking = async (req, res) => {
       .transform((docs) =>
         docs.map((doc) => ({
           id: doc._id,
-          question: doc.Question,
-          expiredTime: doc.ExpiredTimeSpeak,
-          topicName: doc.TopicName,
+          resultSkill: doc.ResultSkill,
+          topic: doc.Topic,
+          skills: doc.Skills,
           day: doc.CreatedAt,
         })),
       )
@@ -68,58 +69,59 @@ export const getSpeaking = async (req, res) => {
   }
 }
 
-export const addSpeakingFile = async (req, res) => {
+export const addResultSkill = async (req, res) => {
   try {
-    const { question, expiredTime, topicName } = req.body
+    const { result, topic, user_id, skill } = req.body
 
-    if (!question) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid question' })
+    if (!result) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid audio question' })
       return
     }
 
-    if (!expiredTime) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Expired Time' })
-      return
-    }
-
-    if (!topicName) {
+    if (!topic) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid topic name' })
+      return
+    }
+
+    if (!skill) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid skill' })
       return
     }
 
     const currentTimestamp = dayjs.utc().unix()
 
-    const response = await SpeakingModel.create({
-      Question: question,
-      ExpiredTimeSpeak: expiredTime,
-      TopicName: topicName,
+    const response = await ResultSkillModel.create({
+      ResultSkill: result,
+      Topic: topic,
+      User: user_id,
+      Skills: skill,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
     })
 
     if (response) {
-      res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You create speaking successfully' })
+      res.status(StatusCodes.OK).json({ success: true, data: null, message: `You create ${skill} successfully` })
     } else {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You create speaking fail' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: `You create ${skill} fail` })
     }
   } catch (error) {
-    console.log('[Add speaking] Error: ', error)
+    console.log('[Add result skill] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })
   }
 }
 
-export const deleteSpeaking = async (req, res) => {
+export const deleteResultSkill = async (req, res) => {
   try {
-    const { speaking_id } = req.body
+    const { result_id } = req.body
 
-    if (!speaking_id) {
+    if (!result_id) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Speaking Id is required' })
       return
     }
 
-    const response = await SpeakingModel.findByIdAndDelete(speaking_id).catch(() => {
+    const response = await ResultSkillModel.findByIdAndDelete(result_id).catch(() => {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You delete the speaking fail' })
     })
 
@@ -134,46 +136,39 @@ export const deleteSpeaking = async (req, res) => {
   }
 }
 
-export const updatePost = async (req, res) => {
+export const updateResultSkill = async (req, res) => {
   try {
-    const { question, expiredTime, topicName, speaking_id } = req.body
+    const { result, topic, skill, result_id } = req.body
 
-    if (!question) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid question' })
+    if (!result) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid audio question' })
       return
     }
 
-    if (!expiredTime) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid Expired Time' })
-      return
-    }
-
-    if (!topicName) {
+    if (!topic) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid topic name' })
       return
     }
 
-    if (!speaking_id) {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Post ID is required' })
-
+    if (!skill) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid skill' })
       return
     }
-
     const currentTimestamp = dayjs.utc().unix()
 
-    SpeakingModel.findByIdAndUpdate(speaking_id, {
-      Question: question,
-      ExpiredTimeSpeak: expiredTime,
-      TopicName: topicName,
+    SpeakingModel.findByIdAndUpdate(result_id, {
+      ResultSkill: result,
+      Topic: topic,
+      Skills: skill,
       UpdatedAt: currentTimestamp,
     }).catch(() => {
-      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'You update the speaking fail' })
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: `You update the ${skill} fail` })
       return
     })
 
-    res.status(StatusCodes.OK).json({ success: true, data: null, message: 'You update the speaking successful' })
+    res.status(StatusCodes.OK).json({ success: true, data: null, message: `You update the ${skill} successfully` })
   } catch (error) {
-    console.log('[update speaking] Error: ', error)
+    console.log('[update result skill] Error: ', error)
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ success: false, data: null, message: getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR) })

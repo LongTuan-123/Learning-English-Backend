@@ -3,7 +3,7 @@ import * as authController from '../controllers/authentication.controller'
 import * as randomController from '../controllers/randomCard.controller'
 import * as postStatsController from '../controllers/stats.controller'
 import * as messageController from '../controllers/message.controller'
-import * as resultTestController from '../controllers/resultExam.controller'
+import * as resultTestController from '../controllers/resultTest.controller'
 import * as speakingController from '../controllers/speaking.controller'
 
 const router = express.Router()

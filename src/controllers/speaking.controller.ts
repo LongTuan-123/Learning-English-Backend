@@ -13,7 +13,10 @@ export const getSpeaking = async (req, res) => {
 
   const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
   const limit = Number(queryString.limit || DEFAULT_ITEM_PER_PAGE)
+  const parts = queryString.parts || '1,2,3'
   const topicName = queryString.topicName
+
+  const partList = parts.split(',')
 
   if (startPage < 0) {
     res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid start page option' })
@@ -39,6 +42,9 @@ export const getSpeaking = async (req, res) => {
     const speaking = await SpeakingModel.find(
       {
         TopicName: topicName,
+        $or: partList.map((part: string) => ({
+          Part: part,
+        })),
       },
       null,
       { skip: startPage * limit, limit },
@@ -70,7 +76,7 @@ export const getSpeaking = async (req, res) => {
 
 export const addSpeakingFile = async (req, res) => {
   try {
-    const { question, expiredTime, topicName } = req.body
+    const { question, expiredTime, part, topicName } = req.body
 
     if (!question) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid question' })
@@ -87,11 +93,17 @@ export const addSpeakingFile = async (req, res) => {
       return
     }
 
+    if (!part) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid part' })
+      return
+    }
+
     const currentTimestamp = dayjs.utc().unix()
 
     const response = await SpeakingModel.create({
       Question: question,
       ExpiredTimeSpeak: expiredTime,
+      Part: part,
       TopicName: topicName,
       CreatedAt: currentTimestamp,
       UpdatedAt: currentTimestamp,
@@ -136,7 +148,7 @@ export const deleteSpeaking = async (req, res) => {
 
 export const updatePost = async (req, res) => {
   try {
-    const { question, expiredTime, topicName, speaking_id } = req.body
+    const { question, expiredTime, part, topicName, speaking_id } = req.body
 
     if (!question) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid question' })
@@ -159,11 +171,17 @@ export const updatePost = async (req, res) => {
       return
     }
 
+    if (!part) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid part' })
+      return
+    }
+
     const currentTimestamp = dayjs.utc().unix()
 
     SpeakingModel.findByIdAndUpdate(speaking_id, {
       Question: question,
       ExpiredTimeSpeak: expiredTime,
+      Part: part,
       TopicName: topicName,
       UpdatedAt: currentTimestamp,
     }).catch(() => {

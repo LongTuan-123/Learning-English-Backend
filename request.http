@@ -16,4 +16,19 @@ content-type: application/json
   "otpCode": "443674"
 }
 
+### Api Topic Deck
+GET http://localhost:4000/api/topic-deck?userId=636d26b3e41451912bc9b799
+content-type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYW5hZ2VyX2lkIjoiNjM2ZDI2YjNlNDE0NTE5MTJiYzliNzk5IiwiZW1haWwiOiJtYWlsYW0xMzA5QGdtYWlsLmNvbSIsInJvbGUiOjEwMDAwLCJpYXQiOjE2NzE2MzA2MjgsImV4cCI6MTY3MTcxNzAyOH0.2TkRjvIaHDVnCX3dQ5elnCJjfTWboD4ORDIDbPhHwxM
 
+### Create topic deck
+POST http://localhost:4000/api/topic-deck/create
+content-type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYW5hZ2VyX2lkIjoiNjM2ZDI2YjNlNDE0NTE5MTJiYzliNzk5IiwiZW1haWwiOiJtYWlsYW0xMzA5QGdtYWlsLmNvbSIsInJvbGUiOjEwMDAwLCJpYXQiOjE2NzE2MzA2MjgsImV4cCI6MTY3MTcxNzAyOH0.2TkRjvIaHDVnCX3dQ5elnCJjfTWboD4ORDIDbPhHwxM
+
+{
+  "topicName": "Reading",
+  "userId": "636d26b3e41451912bc9b799"
+}
+
+### Add topic skill

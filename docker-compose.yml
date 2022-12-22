@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  tita_web:
+    container_name: english_project_be
+    image: english_project_be:latest
+    build:
+      context: .
+      args:
+        APP_ENV: production
+        SERVER_PORT: 4000
+        MONGODB_HOST: 127.0.0.1
+        MONGODB_PORT: 27017
+        MONGODB_DATABASE: 'English'
+        AUTH_SALT_VALUE: 5
+        JWT_SECRET_KEY: 'secret_key'
+        JWT_EXPIRATION_DURATION: 86400
+        MAIL_MAILER: 'smtp'
+        MAIL_HOST: 'smtp.gmail.com'
+        MAIL_PORT: 587
+        MAIL_USERNAME: 'mailam1309@gmail.com'
+        MAIL_PASSWORD: 'uuaoszipjvmnhwiz'
+        MAIL_ENCRYPTION: 'TLS'
+        MAIL_FROM_ADDRESS: 'mailam1309@gmail.com'
+        MAIL_FROM_NAME: 'Lam'
+    ports:
+      - 4000:4000

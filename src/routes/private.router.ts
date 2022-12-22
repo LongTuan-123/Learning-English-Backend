@@ -5,6 +5,7 @@ import * as postStatsController from '../controllers/stats.controller'
 import * as messageController from '../controllers/message.controller'
 import * as resultTestController from '../controllers/resultTest.controller'
 import * as speakingController from '../controllers/speaking.controller'
+import * as resultSkillController from '../controllers/resultSkill.controller'
 
 const router = express.Router()
 
@@ -33,5 +34,11 @@ router.get('/api/speaking', speakingController.getSpeaking)
 router.post('/api/speaking/add', speakingController.addSpeakingFile)
 router.post('/api/speaking/delete', speakingController.deleteSpeaking)
 router.post('/api/speaking/update', speakingController.updatePost)
+
+// Api result skill
+router.get('/api/result-skill', resultSkillController.getResultSkill)
+router.post('/api/result-skill/add', resultSkillController.addResultSkill)
+router.post('/api/result-skill/delete', resultSkillController.deleteResultSkill)
+router.post('/api/result-skill/update', resultSkillController.updateResultSkill)
 
 export default router

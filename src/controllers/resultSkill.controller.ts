@@ -51,6 +51,7 @@ export const getResultSkill = async (req, res) => {
           id: doc._id,
           resultSkill: doc.ResultSkill,
           topic: doc.Topic,
+          title: doc.Title,
           skills: doc.Skills,
           day: doc.CreatedAt,
         })),
@@ -71,7 +72,7 @@ export const getResultSkill = async (req, res) => {
 
 export const addResultSkill = async (req, res) => {
   try {
-    const { result, topic, user_id, skill } = req.body
+    const { result, topic, title, user_id, skill } = req.body
 
     if (!result) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid audio question' })
@@ -88,11 +89,17 @@ export const addResultSkill = async (req, res) => {
       return
     }
 
+    if (!title) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid title' })
+      return
+    }
+
     const currentTimestamp = dayjs.utc().unix()
 
     const response = await ResultSkillModel.create({
       ResultSkill: result,
       Topic: topic,
+      Title: title,
       User: user_id,
       Skills: skill,
       CreatedAt: currentTimestamp,
@@ -138,7 +145,7 @@ export const deleteResultSkill = async (req, res) => {
 
 export const updateResultSkill = async (req, res) => {
   try {
-    const { result, topic, skill, result_id } = req.body
+    const { result, topic, title, skill, result_id } = req.body
 
     if (!result) {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid audio question' })
@@ -154,11 +161,17 @@ export const updateResultSkill = async (req, res) => {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid skill' })
       return
     }
+
+    if (!title) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Invalid title' })
+      return
+    }
     const currentTimestamp = dayjs.utc().unix()
 
     SpeakingModel.findByIdAndUpdate(result_id, {
       ResultSkill: result,
       Topic: topic,
+      Title: title,
       Skills: skill,
       UpdatedAt: currentTimestamp,
     }).catch(() => {

@@ -8,6 +8,7 @@ dayjs.extend(utc)
 export type ResultSkillType = {
   ResultSkill: string
   Topic: string
+  Title: string
   User: mongoose.Schema.Types.ObjectId
   Skills: SKILLS
   CreatedAt: number
@@ -21,6 +22,10 @@ const ResultSkillSchema = new mongoose.Schema(
       require: true,
     },
     Topic: {
+      type: String,
+      require: true,
+    },
+    Title: {
       type: String,
       require: true,
     },

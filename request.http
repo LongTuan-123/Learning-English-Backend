@@ -8,12 +8,28 @@ content-type: application/json
 }
 
 ### Api Verify
-POST http://localhost:4000/api/auth/verify
+POST http://localhost:5000/api/auth/verify
 content-type: application/json
 
 {
   "email": "newgeneration1309@gmail.com",
-  "otpCode": "443674"
+  "otpCode": "785972"
+}
+
+### Api Resend
+POST http://localhost:5000/api/auth/resend
+content-type: application/json
+
+{
+  "email": "newgeneration1309@gmail.com",
+}
+
+### Api random card
+GET http://localhost:5000/api/random
+content-type: application/json
+
+{
+  "userId": "636d26b3e41451912bc9b799"
 }
 
 ### Api Topic Deck
@@ -22,7 +38,7 @@ content-type: application/json
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYW5hZ2VyX2lkIjoiNjM2ZDI2YjNlNDE0NTE5MTJiYzliNzk5IiwiZW1haWwiOiJtYWlsYW0xMzA5QGdtYWlsLmNvbSIsInJvbGUiOjEwMDAwLCJpYXQiOjE2NzE2MzA2MjgsImV4cCI6MTY3MTcxNzAyOH0.2TkRjvIaHDVnCX3dQ5elnCJjfTWboD4ORDIDbPhHwxM
 
 ### Create topic deck
-POST http://localhost:4000/api/topic-deck/create
+POST http://localhost:5000/api/topic-deck/create
 content-type: application/json
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtYW5hZ2VyX2lkIjoiNjM2ZDI2YjNlNDE0NTE5MTJiYzliNzk5IiwiZW1haWwiOiJtYWlsYW0xMzA5QGdtYWlsLmNvbSIsInJvbGUiOjEwMDAwLCJpYXQiOjE2NzE2MzA2MjgsImV4cCI6MTY3MTcxNzAyOH0.2TkRjvIaHDVnCX3dQ5elnCJjfTWboD4ORDIDbPhHwxM
 

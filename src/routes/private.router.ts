@@ -7,13 +7,22 @@ import * as resultTestController from '../controllers/resultTest.controller'
 import * as speakingController from '../controllers/speaking.controller'
 import * as resultSkillController from '../controllers/resultSkill.controller'
 
+import rateLimit from 'express-rate-limit'
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 15 minutes
+  max: 2, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
+
 const router = express.Router()
 
 // Api log out
 router.post('/api/auth/logout', authController.logout)
 
 // Api random card
-router.get('/api/random', randomController.randomCard)
+router.get('/api/random', limiter, randomController.randomCard)
 router.post('/api/setup', randomController.setup)
 router.get('/api/check-random/:userId', randomController.checkRandomCardUser)
 router.post('/api/update-setup', randomController.updateSetUp)

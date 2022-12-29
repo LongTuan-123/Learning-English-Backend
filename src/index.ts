@@ -23,6 +23,18 @@ import { SOCKET_KEYS } from './types/socket'
 const DEFAULT_SERVER_PORT = 4000
 const SERVER_PORT = process.env.SERVER_PORT ? Number(process.env.SERVER_PORT) : DEFAULT_SERVER_PORT
 
+interface ICallUser {
+  userToCall: any
+  signalData: any
+  from: string
+  name: string
+}
+
+interface IAnswerUser {
+  to: string
+  signal: any
+}
+
 initializeDBConnection()
 
 const app = express()
@@ -46,6 +58,7 @@ const socketToRoom = {}
 const usersRoom = {}
 
 io.on(SOCKET_KEYS.CONNECTION, (socket) => {
+  socket.emit(SOCKET_KEYS.ME, socket.id)
   socket.on(SOCKET_KEYS.USERS, (data) => {
     socket.join(data)
   })
@@ -73,6 +86,15 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
     socket.to(data.to).emit(SOCKET_KEYS.IS_TYPING, data)
   })
 
+  // Handle call video event
+  socket.on(SOCKET_KEYS.CALL_USER, ({ userToCall, signalData, from, name }: ICallUser) => {
+    io.to(userToCall).emit(SOCKET_KEYS.CALL_USER, { signal: signalData, from, name })
+  })
+
+  socket.on(SOCKET_KEYS.ANSWER_CALL, ({ to, signal }: IAnswerUser) => {
+    io.to(to).emit(SOCKET_KEYS.ACCEPTED_CALL, { signal })
+  })
+
   socket.on(SOCKET_KEYS.DISCONNECT, () => {
     delete users[socket.id]
     const roomID = socketToRoom[socket.id]
@@ -81,6 +103,9 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
       room = room.filter((id) => id !== socket.id)
       usersRoom[roomID] = room
     }
+
+    // broadcast to other user for ending call
+    socket.broadcast.emit(SOCKET_KEYS.END_CALL)
   })
 })
 

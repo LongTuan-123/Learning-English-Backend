@@ -14,4 +14,11 @@ export enum SOCKET_KEYS {
   ACCEPT_IP_CALL = 'accept_ip_call',
   RECEIVED_ACCEPT_IP_CALL = 'received_accept_ip_call',
   REJECT_IP_CALL = 'reject_ip_call',
+
+  // For video call
+  ME = 'me',
+  CALL_USER = 'call_user',
+  ANSWER_CALL = 'answer_call',
+  ACCEPTED_CALL = 'accepted_call',
+  END_CALL = 'end_call',
 }

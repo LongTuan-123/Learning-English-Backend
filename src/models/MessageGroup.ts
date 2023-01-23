@@ -4,14 +4,14 @@ import utc from 'dayjs/plugin/utc'
 
 dayjs.extend(utc)
 
-export type MessageType = {
+export type MessageGroupType = {
   Message: { Text: string; Type: string }
-  Users: unknown
-  Status: boolean
-  Sender: mongoose.Schema.Types.ObjectId
+  Users: Array<string>
+  From: string
+  To: string
 }
 
-const MessageSchema = new mongoose.Schema(
+const MessageGroupSchema = new mongoose.Schema(
   {
     Message: {
       Text: {
@@ -23,21 +23,20 @@ const MessageSchema = new mongoose.Schema(
         required: true,
       },
     },
-    Status: {
-      type: Boolean,
-      require: true,
-    },
     Users: Array,
-    Sender: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    From: {
+      type: String,
+      required: true,
+    },
+    To: {
+      type: String,
       required: true,
     },
   },
   {
-    collection: 'Message',
+    collection: 'MessageGroup',
     timestamps: true,
   },
 )
 
-export const MessageModel = mongoose.model<MessageType>('Message', MessageSchema)
+export const MessageGroupModel = mongoose.model<MessageGroupType>('MessageGroup', MessageGroupSchema)

@@ -14,6 +14,7 @@ export enum SOCKET_KEYS {
   ACCEPT_IP_CALL = 'accept_ip_call',
   RECEIVED_ACCEPT_IP_CALL = 'received_accept_ip_call',
   REJECT_IP_CALL = 'reject_ip_call',
+  ACTIVE_USER = 'active_user',
 
   // For video call
   ME = 'me',

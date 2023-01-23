@@ -19,6 +19,7 @@ import http from 'http'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import jsonwebtoken, { TokenExpiredError } from 'jsonwebtoken'
 import { SOCKET_KEYS } from './types/socket'
+import { trusted } from 'mongoose'
 
 const DEFAULT_SERVER_PORT = 4000
 const SERVER_PORT = process.env.SERVER_PORT ? Number(process.env.SERVER_PORT) : DEFAULT_SERVER_PORT
@@ -64,6 +65,11 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
   })
 
   socket.on(SOCKET_KEYS.CONNECT_CHAT, function (data) {
+    for (const [key, value] of Object.entries(users)) {
+      let address: any = value
+      socket.to(address).emit(SOCKET_KEYS.ACTIVE_USER, true)
+    }
+
     users[socket.id] = data
   })
 
@@ -104,6 +110,11 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
       usersRoom[roomID] = room
     }
 
+    for (const [key, value] of Object.entries(users)) {
+      let address: any = value
+      socket.to(address).emit(SOCKET_KEYS.ACTIVE_USER, false)
+    }
+
     // broadcast to other user for ending call
     socket.broadcast.emit(SOCKET_KEYS.END_CALL)
   })
@@ -111,7 +122,7 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
 
 // Check body response for api
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+app.use(bodyParser.json({ limit: '30mb' }))
 
 // Routes
 // Write api public which don't need jwt in here

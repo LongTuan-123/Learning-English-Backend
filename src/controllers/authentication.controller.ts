@@ -10,6 +10,8 @@ import { generateCode, sendOtpMail } from '../utils/mail'
 dayjs.extend(utc)
 
 const ONE_DAY_IN_SECOND = 86400
+const DEFAULT_START_PAGE = 1
+const DEFAULT_ITEM_PER_PAGE = 5
 
 // User Register
 export const register = async (req, res) => {
@@ -188,8 +190,35 @@ export const logout = (_req, res) => {
 }
 
 export const getListUser = async (req, res) => {
+  const queryString = req.query
+
+  const startPage = Number((queryString.page || DEFAULT_START_PAGE) - 1)
+  const limit = Number(queryString.limit || DEFAULT_ITEM_PER_PAGE)
+  const keyword = queryString.keyword || ''
+
+  if (keyword === '') {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: [],
+    })
+
+    return
+  }
+
   try {
-    const response = await UserModel.find({}, null, {})
+    const totalRecords = await UserModel.countDocuments({
+      Email: { $regex: keyword },
+    })
+    const totalPages = Math.ceil(totalRecords / limit)
+
+    const response = await UserModel.find(
+      {
+        Email: { $regex: keyword },
+      },
+      null,
+      { skip: startPage * limit, limit },
+    )
+      .sort({ CreatedAt: -1 })
       .lean()
       .transform((docs) =>
         docs.map((doc) => ({
@@ -199,7 +228,11 @@ export const getListUser = async (req, res) => {
       )
 
     if (response) {
-      res.status(StatusCodes.OK).json({ success: true, data: response, message: null })
+      res.status(StatusCodes.OK).json({
+        success: true,
+        data: response,
+        pagination: { startPage: startPage + 1, limit: Number(limit), totalPages, totalRecords },
+      })
     } else {
       res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: null })
     }

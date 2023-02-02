@@ -33,10 +33,10 @@ router.get('/api/post-stats', postStatsController.getPostStats)
 // Api message
 router.post('/api/message/send-msg', messageController.sendMsg)
 router.post('/api/message/received-msg', messageController.receivedMsg)
-router.post('/api/message/end-msg', messageController.endMsg)
 router.post('/api/message/add-msg-group', messageController.addMessageGroup)
 router.post('/api/message/get-msg-group', messageController.getMessageGroup)
 router.post('/api/message/update-msg-group', messageController.updateMessageGroup)
+router.post('/api/message/update-unseen-msg-group', messageController.updateUnSeenMessageGroup)
 
 // Api result exam
 router.get('/api/result-test', resultTestController.getResultTest)

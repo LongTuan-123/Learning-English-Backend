@@ -7,6 +7,7 @@ dayjs.extend(utc)
 export type MessageGroupType = {
   Message: { Text: string; Type: string }
   Users: Array<string>
+  UnSeen: number
   From: string
   To: string
 }
@@ -24,6 +25,10 @@ const MessageGroupSchema = new mongoose.Schema(
       },
     },
     Users: Array,
+    UnSeen: {
+      type: Number,
+      required: true,
+    },
     From: {
       type: String,
       required: true,

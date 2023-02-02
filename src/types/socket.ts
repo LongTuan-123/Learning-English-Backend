@@ -22,4 +22,9 @@ export enum SOCKET_KEYS {
   ANSWER_CALL = 'answer_call',
   ACCEPTED_CALL = 'accepted_call',
   END_CALL = 'end_call',
+
+  // Chat
+  RESPONSE_CHAT = 'response_chat',
+  SEEN_CHAT = 'seen_chat',
+  SEEN_CHAT_RESPONSE = 'seen_chat_response',
 }

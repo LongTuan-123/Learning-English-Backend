@@ -19,7 +19,6 @@ import http from 'http'
 import { getReasonPhrase, StatusCodes } from 'http-status-codes'
 import jsonwebtoken, { TokenExpiredError } from 'jsonwebtoken'
 import { SOCKET_KEYS } from './types/socket'
-import { trusted } from 'mongoose'
 
 const DEFAULT_SERVER_PORT = 4000
 const SERVER_PORT = process.env.SERVER_PORT ? Number(process.env.SERVER_PORT) : DEFAULT_SERVER_PORT
@@ -77,6 +76,14 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
     socket.to(data.to).emit(SOCKET_KEYS.RECEIVED_MESSAGE, data)
   })
 
+  socket.on(SOCKET_KEYS.SEEN_CHAT, (data) => {
+    console.log(users)
+    for (const [key, value] of Object.entries(users)) {
+      let address: any = key
+      socket.to(address).emit(SOCKET_KEYS.SEEN_CHAT_RESPONSE, data)
+    }
+  })
+
   socket.on(SOCKET_KEYS.CHECK_ACTIVE, (data) => {
     for (const [key, value] of Object.entries(users)) {
       if (value === data.to) {
@@ -92,6 +99,10 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
     socket.to(data.to).emit(SOCKET_KEYS.IS_TYPING, data)
   })
 
+  socket.on(SOCKET_KEYS.SEND_TYPING, (data) => {
+    socket.to(data.to).emit(SOCKET_KEYS.IS_TYPING, data)
+  })
+
   // Handle call video event
   socket.on(SOCKET_KEYS.CALL_USER, ({ userToCall, signalData, from, name }: ICallUser) => {
     io.to(userToCall).emit(SOCKET_KEYS.CALL_USER, { signal: signalData, from, name })
@@ -99,6 +110,10 @@ io.on(SOCKET_KEYS.CONNECTION, (socket) => {
 
   socket.on(SOCKET_KEYS.ANSWER_CALL, ({ to, signal }: IAnswerUser) => {
     io.to(to).emit(SOCKET_KEYS.ACCEPTED_CALL, { signal })
+  })
+
+  socket.on(SOCKET_KEYS.RESPONSE_CHAT, (data) => {
+    const { to } = data
   })
 
   socket.on(SOCKET_KEYS.DISCONNECT, () => {

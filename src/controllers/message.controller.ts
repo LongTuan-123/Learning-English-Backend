@@ -1,19 +1,20 @@
 import { StatusCodes } from 'http-status-codes'
 import { MessageModel } from '../models/Message'
 import { MessageGroupModel } from '../models/MessageGroup'
+import { UserModel } from '../models/User'
 
 const DEFAULT_START_PAGE = 1
 const DEFAULT_ITEM_PER_PAGE = 5
 
 export const sendMsg = async (req, res, next) => {
   try {
-    const { from, to, message, type } = req.body
+    const { from, to, message, status, type } = req.body
 
     const response = await MessageModel.create({
       Message: { Text: message, Type: type },
       Users: [from, to],
       Sender: from,
-      Status: false,
+      Status: status,
     })
 
     if (response) {
@@ -71,42 +72,29 @@ export const receivedMsg = async (req, res, next) => {
   }
 }
 
-export const seenMsg = async (req, res, next) => {
-  try {
-    const { status } = req.body
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const endMsg = async (req, res, next) => {
+export const updateSeenMsg = async (req, res, next) => {
   try {
     const { from, to } = req.body
 
-    const response = await MessageModel.find(
+    const response = await UserModel.updateMany(
       {
         Users: {
           $all: [from, to],
         },
+        Status: false,
       },
-      null,
-      {},
+      {
+        $set: {
+          Status: true,
+        },
+      },
     )
-      .sort({ createdAt: -1 })
-      .limit(1)
-      .transform((docs) =>
-        docs.map((mess) => ({
-          fromSelf: mess.Sender.toString(),
-          message: mess.Message.Text,
-          type: mess.Message.Type,
-        })),
-      )
 
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data: response,
-      message: null,
-    })
+    if (response) {
+      res.status(StatusCodes.OK).json({ success: true, data: null, message: 'Seen successfully' })
+    } else {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'UnSeen fail' })
+    }
   } catch (error) {
     next(error)
   }
@@ -121,6 +109,7 @@ export const addMessageGroup = async (req, res, next) => {
       From: from,
       To: to,
       Users: [user_send, user_received],
+      UnSeen: 1,
     })
 
     if (response) {
@@ -135,24 +124,20 @@ export const addMessageGroup = async (req, res, next) => {
 
 export const getMessageGroup = async (req, res, next) => {
   try {
-    const { from, to, page, limit } = req.body
+    const { userId, page, limit } = req.body
 
     const startPage = Number((page || DEFAULT_START_PAGE) - 1)
     const limitPage = Number(limit || DEFAULT_ITEM_PER_PAGE)
 
     const totalRecords = await MessageGroupModel.countDocuments({
-      Users: {
-        $all: [from, to],
-      },
+      Users: userId,
     })
 
     const totalPages = Math.ceil(totalRecords / limit)
 
     const response = await MessageGroupModel.find(
       {
-        Users: {
-          $all: [from, to],
-        },
+        Users: userId,
       },
       null,
       { skip: startPage * limitPage, limit: limitPage },
@@ -161,8 +146,10 @@ export const getMessageGroup = async (req, res, next) => {
       .lean()
       .transform((docs) =>
         docs.map((mess) => ({
+          id: mess._id,
           message: mess.Message.Text,
           type: mess.Message.Type,
+          unSeen: mess.UnSeen,
           from: {
             email: mess.From,
             user_id: mess.Users[0],
@@ -187,7 +174,36 @@ export const getMessageGroup = async (req, res, next) => {
 
 export const updateMessageGroup = async (req, res, next) => {
   try {
-    const { message, type, from, to } = req.body
+    const { message, type, id } = req.body
+
+    const response = await MessageGroupModel.findByIdAndUpdate(id, {
+      $set: {
+        Message: {
+          Text: message,
+          Type: type,
+        },
+      },
+    })
+
+    if (!response) {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: 'Update fail' })
+
+      return
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: response,
+      message: 'Update successful',
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const updateUnSeenMessageGroup = async (req, res, next) => {
+  try {
+    const { unSeen, from, to } = req.body
 
     const response = await MessageGroupModel.findOneAndUpdate(
       {
@@ -202,10 +218,7 @@ export const updateMessageGroup = async (req, res, next) => {
       },
       {
         $set: {
-          Message: {
-            Text: message,
-            Type: type,
-          },
+          UnSeen: unSeen,
         },
       },
     )

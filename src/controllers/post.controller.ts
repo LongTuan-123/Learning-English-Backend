@@ -58,11 +58,15 @@ export const index = async (req, res) => {
         })),
       )
 
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data: posts,
-      pagination: { startPage: startPage + 1, limit: Number(limit), totalPages, totalRecords },
-    })
+    if (posts) {
+      res.status(StatusCodes.OK).json({
+        success: true,
+        data: posts,
+        pagination: { startPage: startPage + 1, limit: Number(limit), totalPages, totalRecords },
+      })
+    } else {
+      res.status(StatusCodes.BAD_REQUEST).json({ success: false, data: null, message: null })
+    }
   } catch (error) {
     console.log('[post] Error: ', error)
     res
